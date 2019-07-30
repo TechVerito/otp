@@ -8,7 +8,9 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -44,7 +46,8 @@ func getHOTPToken(secret string, interval int64) string {
 
 	//Signing the value using HMAC-SHA1 Algorithm
 	hash := hmac.New(sha1.New, key)
-	hash.Write(bs)
+	_, err = hash.Write(bs)
+	check(err)
 	h := hash.Sum(nil)
 
 	// We're going to use a subset of the generated hash.
@@ -64,7 +67,7 @@ func getHOTPToken(secret string, interval int64) string {
 	h12 := (int(header) & 0x7fffffff) % 1000000
 
 	//Converts number as a string
-	otp := strconv.Itoa(int(h12))
+	otp := strconv.Itoa(h12)
 
 	return prefix0(otp)
 }
@@ -75,9 +78,19 @@ func getTOTPToken(secret string) string {
 	return getHOTPToken(secret, interval)
 }
 
+func UserHomeDir() string {
+	env := "HOME"
+	if runtime.GOOS == "windows" {
+		env = "USERPROFILE"
+	} else if runtime.GOOS == "plan9" {
+		env = "home"
+	}
+	return os.Getenv(env)
+}
+
 func main() {
 	//Read the secret token from file system
-	data, err := ioutil.ReadFile("~/.vpn_secret.pem")
+	data, err := ioutil.ReadFile(UserHomeDir() + "/.vpn_secret.pem")
 	check(err)
 	secret := string(data)
 	otp := getTOTPToken(secret)
