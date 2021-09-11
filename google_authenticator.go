@@ -29,7 +29,7 @@ func prefix0(otp string) string {
 	if len(otp) == 6 {
 		return otp
 	}
-	for i := (6 - len(otp)); i > 0; i-- {
+	for i := 6 - len(otp); i > 0; i-- {
 		otp = "0" + otp
 	}
 	return otp
@@ -54,7 +54,7 @@ func getHOTPToken(secret string, interval int64) string {
 	// Using the last nibble (half-byte) to choose the index to start from.
 	// This number is always appropriate as it's maximum decimal 15, the hash will
 	// have the maximum index 19 (20 bytes of SHA1) and we need 4 bytes.
-	o := (h[19] & 15)
+	o := h[19] & 15
 
 	var header uint32
 	//Get 32 bit chunk from hash starting at the o
